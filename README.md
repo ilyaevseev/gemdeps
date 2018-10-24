@@ -5,6 +5,7 @@
 
 ### Called programs:
 
+* PERL
 * `yum search rubygem`
 * `gem dependency -b <gemname> [-v <gemversion> ]`
 
