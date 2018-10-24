@@ -43,7 +43,8 @@ sub getdeps($$$;$) {
 		if ($gemfound) {
 			last if /^\s*$/;
 			Verbose "checkd,$ident: $_";
-			getdeps($1, $ident + 2, $gemname) if /^\s+([^\s]+) \(/
+			getdeps($1, $ident + 2, $gemname)
+				if /^\s+([^\s]+) \(/ and ($ENV{DEVELOPMENT_DEPS} or not /development\)/);
 		} elsif (/^Gem $gemname-[0-9\.]+$/) {
 			$gemfound = 1;
 		}

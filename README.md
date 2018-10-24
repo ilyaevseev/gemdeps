@@ -5,6 +5,7 @@
 
 ### Called programs:
 
+* PERL
 * `yum search rubygem`
 * `gem dependency -b <gemname> [-v <gemversion> ]`
 
@@ -18,7 +19,7 @@
     gemdeps jsonpath
     gemdeps gitlab 4.5.0
 
-### Debugging:
+### Environment variables:
 
-    export VERBOSE=1
-    gemdeps ...
+* `VERBOSE` -- do debugging output
+* `DEVELOPMENT_DEPS` -- do not ignore gems needed for building only
