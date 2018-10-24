@@ -1,0 +1,61 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my %skipped = map { $_ => 1 } qw/rails/;
+
+open F, 'yum -q search rubygem- |' or die "Cannot run yum: $!\n";
+my @lines = <F>;
+close F;
+my %rpmgems;
+map { $rpmgems{$1} = 1 if /^rubygem-(.+)\.[^\.]+ : / } @lines;
+
+#print "$_\n" foreach sort keys %rpmgems;
+
+my %deps;
+
+sub getdeps($$$;$);
+
+sub Verbose { $ENV{VERBOSE} and print "@_\n" }
+
+sub getdeps($$$;$) {
+	my ($gemname, $ident, $parentname, $version) = @_;
+
+	return Verbose "rpmgem,$ident: $gemname" if $rpmgems{$gemname};
+	return Verbose "passed,$ident: $gemname" if    $deps{$gemname};
+
+	$deps{$gemname} = 1;
+	printf "%s%s\n",         ' ' x $ident, $gemname;
+	#rintf "%s%s (%d) %s\n", ' ' x $ident, $gemname, $ident, $parentname;
+
+	return Verbose "skiped,$ident: $gemname" if $skipped{$gemname};
+
+	my $verstr = $version ? " -v $version" : "";
+	open (my $fd, "gem dependency -b $gemname $verstr |")
+	   or die "Cannot run gem $gemname: $!\n";
+	my @lines = <$fd>;
+	chomp @lines;
+	close $fd;
+
+	my $gemfound;
+	foreach(@lines) {
+		if ($gemfound) {
+			last if /^\s*$/;
+			Verbose "checkd,$ident: $_";
+			getdeps($1, $ident + 2, $gemname) if /^\s+([^\s]+) \(/
+		} elsif (/^Gem $gemname-[0-9\.]+$/) {
+			$gemfound = 1;
+		}
+	}
+
+	#map { getdeps($1, $ident + 2, $gemname) if /^\s+([^\s]+) \(/ } @lines;
+}
+
+die "Usage: $0 gemname [version]\n" if @ARGV < 1 or @ARGV > 2;
+
+getdeps($ARGV[0], 0, '', $ARGV[1]);
+
+#print "$_\n" foreach sort keys %deps;
+
+## END ##
